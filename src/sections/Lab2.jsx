@@ -1,167 +1,155 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Slider } from '../components/Slider';
 
 export default function Lab2() {
-  const [failProb, setFailProb] = useState(0.05);
-  const [detectionRate, setDetectionRate] = useState(0.95);
-  const [falseAlarmRate, setFalseAlarmRate] = useState(0.04);
+  const [failProb,      setFailProb]      = useState(5);
+  const [detectionRate, setDetectionRate] = useState(95);
+  const [falseAlarmRate,setFalseAlarmRate]= useState(4);
 
-  const calculateBayesian = () => {
-    const goodProb = 1 - failProb;
-    const pWarning = (detectionRate * failProb) + (falseAlarmRate * goodProb);
-    const pFailGivenWarning = (detectionRate * failProb) / pWarning;
-    const pGoodGivenWarning = (falseAlarmRate * goodProb) / pWarning;
+  const pF  = failProb      / 100;
+  const pDr = detectionRate / 100;
+  const pFa = falseAlarmRate / 100;
+  const pG  = 1 - pF;
 
-    return {
-      pWarning: (pWarning * 100).toFixed(2),
-      pFailGivenWarning: (pFailGivenWarning * 100).toFixed(2),
-      pGoodGivenWarning: (pGoodGivenWarning * 100).toFixed(2)
-    };
-  };
+  const pWarning          = (pDr * pF + pFa * pG);
+  const pFailGivenWarning = (pDr * pF) / pWarning;
+  const pGoodGivenWarning = (pFa * pG) / pWarning;
 
-  const results = calculateBayesian();
+  const SliderCtrl = ({ label, value, setter, min, max, unit }) => (
+    <div>
+      <label className="flex justify-between text-xs mb-2 font-semibold" style={{ color: 'var(--text-secondary)' }}>
+        <span>{label}</span>
+        <span style={{ color: 'var(--neon-cyan)' }}>{value}{unit}</span>
+      </label>
+      <input type="range" min={min} max={max} step="0.5" value={value}
+        onChange={e => setter(Number(e.target.value))}
+        className="w-full accent-cyan-400" />
+      <div className="flex justify-between text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+        <span>{min}{unit}</span><span>{max}{unit}</span>
+      </div>
+    </div>
+  );
 
   return (
-    <section id="lab2" className="min-h-screen py-20 px-4 relative z-10">
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="mb-16"
-        >
-          <h2 className="text-5xl font-bold gradient-text mb-4">Lab 2: Robotic Gripper Reliability</h2>
-          <p className="text-gray-300 text-lg">
-            Bayesian analysis of defect detection in automated inspection systems
-          </p>
-        </motion.div>
-
-        <motion.div
-          className="glass p-8 rounded-xl border border-neon-blue/30 mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <h3 className="text-2xl font-bold text-neon-cyan mb-6">Interactive Parameters</h3>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm mb-2">
-                  Failure Probability: {(failProb * 100).toFixed(2)}%
-                </label>
-                <Slider
-                  value={failProb * 100}
-                  onChange={(v) => setFailProb(v / 100)}
-                  min={1}
-                  max={20}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm mb-2">
-                  Detection Rate: {(detectionRate * 100).toFixed(2)}%
-                </label>
-                <Slider
-                  value={detectionRate * 100}
-                  onChange={(v) => setDetectionRate(v / 100)}
-                  min={50}
-                  max={100}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm mb-2">
-                  False Alarm Rate: {(falseAlarmRate * 100).toFixed(2)}%
-                </label>
-                <Slider
-                  value={falseAlarmRate * 100}
-                  onChange={(v) => setFalseAlarmRate(v / 100)}
-                  min={1}
-                  max={20}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <motion.div
-                className="p-6 bg-gradient-to-br from-neon-blue/10 to-neon-cyan/10 border border-neon-blue/30 rounded-lg"
-                key={results.pWarning}
-                animate={{ scale: [1, 1.02, 1] }}
-              >
-                <div className="text-sm text-gray-400 mb-2">P(Warning Triggered)</div>
-                <div className="text-4xl font-bold text-neon-cyan">{results.pWarning}%</div>
-                <p className="text-xs text-gray-500 mt-3">Probability inspection flags a defect</p>
-              </motion.div>
-
-              <motion.div
-                className="p-6 bg-gradient-to-br from-neon-purple/10 to-neon-cyan/10 border border-neon-purple/30 rounded-lg"
-                key={results.pFailGivenWarning}
-                animate={{ scale: [1, 1.02, 1] }}
-              >
-                <div className="text-sm text-gray-400 mb-2">P(Failure | Warning)</div>
-                <div className="text-4xl font-bold text-neon-purple">{results.pFailGivenWarning}%</div>
-                <p className="text-xs text-gray-500 mt-3">Probability failure is real given alarm</p>
-              </motion.div>
-
-              <motion.div
-                className="p-6 bg-gradient-to-br from-yellow-500/10 to-neon-cyan/10 border border-yellow-500/30 rounded-lg"
-                key={results.pGoodGivenWarning}
-                animate={{ scale: [1, 1.02, 1] }}
-              >
-                <div className="text-sm text-gray-400 mb-2">P(Good | Warning)</div>
-                <div className="text-4xl font-bold text-yellow-500">{results.pGoodGivenWarning}%</div>
-                <p className="text-xs text-gray-500 mt-3">Probability of false alarm</p>
-              </motion.div>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          className="glass p-8 rounded-xl border border-neon-blue/30 mb-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          <h3 className="text-2xl font-bold text-neon-cyan mb-4">Key Findings</h3>
-          <div className="space-y-3 text-gray-300">
-            <p className="flex items-start gap-2">
-              <span className="text-neon-cyan">→</span>
-              <span>Even with 95% detection accuracy, only {results.pFailGivenWarning}% of alarms indicate real failures</span>
-            </p>
-            <p className="flex items-start gap-2">
-              <span className="text-neon-cyan">→</span>
-              <span>{results.pGoodGivenWarning}% of flags are false alarms - wasting production time</span>
-            </p>
-            <p className="flex items-start gap-2">
-              <span className="text-neon-cyan">→</span>
-              <span>Base rate (5% failure) heavily influences posterior probability</span>
-            </p>
-            <p className="flex items-start gap-2">
-              <span className="text-neon-cyan">→</span>
-              <span>Multiple sensors or secondary verification recommended</span>
-            </p>
-          </div>
-        </motion.div>
-
-        <motion.div
-          className="glass p-8 rounded-xl border border-neon-blue/30"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          <h3 className="text-2xl font-bold text-neon-cyan mb-4">Engineering Recommendation</h3>
-          <div className="p-4 bg-neon-blue/10 border border-neon-blue/30 rounded-lg">
-            <p className="text-gray-300 mb-3">
-              <strong>Never rely on a single inspection result for product rejection.</strong>
-            </p>
-            <p className="text-sm text-gray-400">
-              Use a two-stage inspection process: Initial high-speed scan followed by detailed secondary verification for flagged parts. This reduces false rejections while maintaining quality assurance.
-            </p>
-          </div>
-        </motion.div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <div className="section-tag">Lab 2 · Bayesian Probability</div>
+        <h2 className="text-4xl font-bold gradient-text mb-2">Robotic Gripper Reliability</h2>
+        <p style={{ color: 'var(--text-muted)' }}>
+          Applying Bayes' theorem to analyse defect detection accuracy in an automated inspection system for robotic grippers.
+        </p>
       </div>
-    </section>
+
+      {/* Objective */}
+      <motion.div
+        className="glass rounded-xl p-6 neon-border"
+        initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+      >
+        <h3 className="font-bold text-lg mb-3" style={{ color: 'var(--neon-cyan)' }}>🎯 Objective</h3>
+        <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <li>→ Apply Bayes' Theorem: P(A|B) = P(B|A)·P(A) / P(B)</li>
+          <li>→ Compute P(Failure | Warning) — the probability a triggered alarm is genuine</li>
+          <li>→ Understand the base-rate fallacy in quality inspection systems</li>
+          <li>→ Recommend inspection strategies to minimise false rejections</li>
+        </ul>
+      </motion.div>
+
+      {/* Bayes Formula */}
+      <motion.div
+        className="glass rounded-xl p-6 neon-border text-center"
+        initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+      >
+        <h3 className="font-bold text-lg mb-4" style={{ color: 'var(--neon-cyan)' }}>📐 Bayes' Theorem</h3>
+        <p className="text-lg font-mono font-bold mb-3" style={{ color: 'var(--neon-blue)' }}>
+          P(F|W) = P(W|F) · P(F) / P(W)
+        </p>
+        <div className="grid md:grid-cols-3 gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+          <div className="glass rounded-lg p-3 neon-border">
+            <div className="font-bold mb-1" style={{ color: 'var(--neon-cyan)' }}>P(F) = Prior</div>
+            <div>Probability the part is faulty before inspection</div>
+          </div>
+          <div className="glass rounded-lg p-3 neon-border">
+            <div className="font-bold mb-1" style={{ color: 'var(--neon-cyan)' }}>P(W|F) = Likelihood</div>
+            <div>Probability sensor triggers given the part is faulty</div>
+          </div>
+          <div className="glass rounded-lg p-3 neon-border">
+            <div className="font-bold mb-1" style={{ color: 'var(--neon-cyan)' }}>P(W) = Evidence</div>
+            <div>Total probability of sensor triggering</div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Interactive Sliders + Results */}
+      <motion.div
+        className="glass rounded-xl p-6 neon-border"
+        initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+      >
+        <h3 className="font-bold text-lg mb-6" style={{ color: 'var(--neon-cyan)' }}>🎛️ Interactive Bayesian Calculator</h3>
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Sliders */}
+          <div className="space-y-6">
+            <SliderCtrl label="Failure Rate P(F)"      value={failProb}       setter={setFailProb}       min={1}  max={30} unit="%" />
+            <SliderCtrl label="Detection Rate P(W|F)"  value={detectionRate}  setter={setDetectionRate}  min={50} max={100} unit="%" />
+            <SliderCtrl label="False Alarm Rate P(W|G)" value={falseAlarmRate} setter={setFalseAlarmRate} min={1}  max={20} unit="%" />
+          </div>
+
+          {/* Results */}
+          <div className="space-y-4">
+            {[
+              { label: 'P(Warning Triggered)', value: (pWarning*100).toFixed(2)+'%', sub: 'Probability alarm fires', color: 'var(--neon-cyan)' },
+              { label: 'P(Failure | Warning)', value: (pFailGivenWarning*100).toFixed(2)+'%', sub: 'Alarm is genuine failure', color: 'var(--neon-purple)' },
+              { label: 'P(Good | Warning)',    value: (pGoodGivenWarning*100).toFixed(2)+'%', sub: 'Alarm is false positive', color: '#FFD700' },
+            ].map((r, i) => (
+              <motion.div
+                key={i}
+                className="glass rounded-xl p-5 neon-border"
+                layout
+              >
+                <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>{r.label}</div>
+                <div className="text-4xl font-bold font-mono" style={{ color: r.color }}>{r.value}</div>
+                <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>{r.sub}</div>
+                {/* Progress bar */}
+                <div className="mt-3 rounded-full overflow-hidden" style={{ height: 4, background: 'rgba(255,255,255,0.08)' }}>
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ background: r.color }}
+                    animate={{ width: r.value }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Key Findings */}
+      <motion.div
+        className="glass rounded-xl p-6 neon-border"
+        initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+      >
+        <h3 className="font-bold text-lg mb-4" style={{ color: 'var(--neon-cyan)' }}>🔍 Key Findings</h3>
+        <div className="space-y-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <p className="flex gap-2"><span style={{ color: 'var(--neon-cyan)' }}>→</span><span>Even at {detectionRate}% detection accuracy, only <strong style={{ color: 'var(--neon-purple)' }}>{(pFailGivenWarning*100).toFixed(1)}%</strong> of triggered alarms are genuine failures.</span></p>
+          <p className="flex gap-2"><span style={{ color: 'var(--neon-cyan)' }}>→</span><span><strong style={{ color: '#FFD700' }}>{(pGoodGivenWarning*100).toFixed(1)}%</strong> of alarms are false positives, wasting production time.</span></p>
+          <p className="flex gap-2"><span style={{ color: 'var(--neon-cyan)' }}>→</span><span>Low base rate P(F) = {failProb}% dominates the posterior — this is the <em>base-rate fallacy</em>.</span></p>
+          <p className="flex gap-2"><span style={{ color: 'var(--neon-cyan)' }}>→</span><span>A two-stage inspection strategy is recommended to reduce false rejections while maintaining quality.</span></p>
+        </div>
+      </motion.div>
+
+      {/* Engineering Recommendation */}
+      <motion.div
+        className="glass rounded-xl p-6 neon-border"
+        style={{ background: 'rgba(0,217,255,0.04)' }}
+        initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+      >
+        <h3 className="font-bold text-lg mb-3" style={{ color: 'var(--neon-cyan)' }}>🏭 Engineering Recommendation</h3>
+        <p className="text-sm mb-3 font-bold" style={{ color: 'var(--text-primary)' }}>Never reject parts based on a single inspection result.</p>
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          Implement a <strong>two-stage inspection pipeline</strong>: Stage 1 uses a fast optical sensor for initial screening. Stage 2 applies a slower, high-accuracy tactile sensor only to flagged parts. This reduces false rejection rate while maintaining throughput and quality assurance standards.
+        </p>
+      </motion.div>
+    </div>
   );
 }

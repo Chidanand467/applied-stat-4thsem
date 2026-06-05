@@ -1,20 +1,27 @@
 import React from 'react';
-import { Moon, Sun } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function ThemeToggle({ theme, setTheme }) {
+  const isDark = theme === 'dark';
+
   return (
     <motion.button
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="fixed bottom-8 right-8 p-3 glass rounded-full border border-neon-blue/30 z-50"
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.95 }}
+      id="theme-toggle-btn"
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className="theme-toggle"
+      whileHover={{ scale: 1.12 }}
+      whileTap={{ scale: 0.92 }}
+      title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
     >
-      {theme === 'dark' ? (
-        <Sun className="w-6 h-6 text-neon-cyan" />
-      ) : (
-        <Moon className="w-6 h-6 text-neon-blue" />
-      )}
+      <motion.span
+        key={theme}
+        initial={{ rotate: -30, opacity: 0 }}
+        animate={{ rotate: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        style={{ display: 'block', fontSize: '1.4rem', lineHeight: 1 }}
+      >
+        {isDark ? '☀️' : '🌙'}
+      </motion.span>
     </motion.button>
   );
 }
